@@ -2,22 +2,44 @@
 {% block title %}A Path Moment{% endblock %}
 {% block head %}
 	{{ super() }}
+	<script src="http://js.pusher.com/1.11/pusher.min.js"></script>
+	<script type="text/javascript">
+		// don't include this in production
+		Pusher.log = function(message) {
+			if (window.console && window.console.log) window.console.log(message);
+		};
+		WEB_SOCKET_DEBUG = true;
+		// remove the above in production
 	
+		var pusher = new Pusher('707a21bc6e05a8c64325');
+		var channel = pusher.subscribe('a_channel');
+		channel.bind('an_event', function(data) {
+			var list = document.getElementById('list_of_moments');
+			var the_elements = list.children;
+			var new_element = document.createElement('li');
+			//new_element.innerHTML = "yes!";
+			list.insertBefore(the_elements[the_elements.length - 1], list.firstChild);
+			//list.prependChild(new_element);
+			//alert(data);
+		});
+	</script>
 {% endblock %}
 {% block content %}
 	<h2>Here is are recent tweeted moments</h2>
 	<ul class="moment-tweets">
-	{% for moment in moments %}
-		<li>{{ moment['text'] }}</li>
+	{% for moment in photo_moments %}
+		<li>{{ moment.getText() }}</li>
 	{% else %}
 		<li>Sorry! No moments found.</li>
 	{% endfor %}
 	</ul>
 	<h2>Here is are recent photo moments</h2>
 	<div class="photo-moments">
-		<ul>
-			{% for photo_link in photo_links %}
-				<li><img src="{{photo_link}}" width="250" height="250" /></li>
+		<ul id="list_of_moments">
+			{% for moment in photo_moments %}
+				{% if moment.getPhotoUrl() %}
+				<li><img src="{{moment.getPhotoUrl()}}" onMouseOver="hey!" width="250" height="250" /></li>
+				{% endif %}
 			{% else %}
 				<li>Sorry! No moments found.</li>
 			{% endfor %}

@@ -7,7 +7,18 @@ import threading
 import time
 import os
 from werkzeug.contrib.cache import SimpleCache
+import pusher
+
 cache = SimpleCache()
+
+#pusher.app_id = '17452'
+#pusher.key = '707a21bc6e05a8c64325'
+#pusher.secret = 'a318e255b90c66fd82e4'
+pusher.app_id = '17465'
+pusher.key = '5b7cb63a557f941ee1aa'
+pusher.secret = '80e7e4e4bc8cd488e802'
+
+p = pusher.Pusher()
 
 app = Flask(__name__)
 
@@ -15,49 +26,12 @@ app.config.update(
 	DEBUG = True,
 )
 
-class GetHtmlFromUrlThread(threading.Thread):
-    def __init__(self, url_queue, html_queue):
-        threading.Thread.__init__(self)
-        self.url_queue = url_queue
-        self.html_queue = html_queue
-
-    def run(self):
-        while True:
-            url = self.url_queue.get()
-            try:
-                opened_url = urllib2.urlopen(url)
-                try:
-                    html = opened_url.read()
-                    self.html_queue.put(html)
-                except:
-                    print "unable to read html"
-            except:
-                print "unable to open link"
-            self.url_queue.task_done()
-
-class GetPhotoLinkFromHtmlThread(threading.Thread):
-    def __init__(self, html_queue, photo_link_list):
-        threading.Thread.__init__(self)
-        self.html_queue = html_queue
-        self.photo_link_list = photo_link_list
-    
-    def run(self):
-        while True:
-            html = self.html_queue.get()
-            soup = BeautifulSoup(html)
-            photo_containers = soup.findAll("div", { "class" : "photo-container"})
-            if len(photo_containers) is 1:
-                photo_link = photo_containers[0].img['src']
-                print photo_link
-                self.photo_link_list.append(photo_link)
-            self.html_queue.task_done()
-
 class TaskThread(threading.Thread):
     """Thread that executes a task every N seconds"""
     
     def __init__(self):
         threading.Thread.__init__(self)
-        self._finished = threading.event()
+        self._finished = threading.Event()
         self._interval = 15.0
     
     def setInterval(self, interval):
@@ -78,16 +52,66 @@ class TaskThread(threading.Thread):
     
     def task(self):
         """The task done by this thread - override in subclasses"""
-        pass
+        #pass
+        get_photo_moments_from_cache()
 
+class GetHtmlFromUrlThread(threading.Thread):
+    def __init__(self, moment_queue):
+        threading.Thread.__init__(self)
+        self.moment_queue = moment_queue
+
+    def run(self):
+        while True:
+            moment = self.moment_queue.get()
+            url = moment.getPathUrl()
+            print url
+            try:
+                opened_url = urllib2.urlopen(url)
+                try:
+                    html = opened_url.read()
+                    #self.html_queue.put(html)
+                    try:
+                        soup = BeautifulSoup(html)
+                        photo_containers = soup.findAll("div", { "class" : "photo-container"})
+                        if len(photo_containers) is 1:
+                            photo_url = photo_containers[0].img['src']
+                            #print photo_link
+                            moment.setPhotoUrl(photo_url)
+                            #print moment.getPhotoUrl()
+                    except:
+                        "unable to parse html"
+                except:
+                    print "unable to read html"
+            except:
+                print "unable to open link"
+            self.moment_queue.task_done()
+
+class Moment():
+    def __init__(self, id, text, path_url):
+        self.id = id
+        self.text = text
+        self.path_url = path_url
+        self.photo_url = None
+    
+    def setPhotoUrl(self, photo_url):
+        self.photo_url = photo_url
+    
+    def getPhotoUrl(self):
+        return self.photo_url
+    
+    def getText(self):
+        return self.text
+    
+    def getPathUrl(self):
+        return self.path_url
 
 def get_tweet_results_from_search_url(search_url):
     resultsContainer = json.load(urllib.urlopen(search_url))
     tweet_results = resultsContainer['results']
     return tweet_results
 
-def get_path_urls_from_tweet_results(tweet_results):
-    links = []
+def get_photo_moments_from_tweet_results(tweet_results):
+    moments = []
     for result in tweet_results:
         text = result['text']
         words = text.split()
@@ -95,68 +119,63 @@ def get_path_urls_from_tweet_results(tweet_results):
         if wordcount >= 3:
             if string.find(words[wordcount-3], "[pic]") >= 0:
                 if string.find(words[wordcount-1], "http://") >= 0:
-                    links.append(words[wordcount-1])
-    return links
+                    moment_id = result['id']
+                    path_url = words[wordcount-1]
+                    path_url = path_url.rstrip('\"')
+                    moment = Moment(moment_id, text, path_url)
+                    moments.append(moment)
+    return moments
 
-def get_photo_links_from_path_urls(path_urls):
-    number_urls = len(path_urls)
+def add_photo_links_to_photo_moments(moments):
+    number_urls = len(moments)
     
-    url_queue = Queue.Queue()
-    html_queue = Queue.Queue()
-    photo_url_list = []
+    moment_queue = Queue.Queue()
     
     for i in range(number_urls):
-        html_thread = GetHtmlFromUrlThread(url_queue, html_queue)
+        html_thread = GetHtmlFromUrlThread(moment_queue)
         html_thread.setDaemon(True)
         html_thread.start()
     
-    for path_url in path_urls:
-        url_queue.put(path_url)
+    for moment in moments:
+        moment_queue.put(moment)
     
-    for i in range(number_urls):
-        photo_link_thread = GetPhotoLinkFromHtmlThread(html_queue, photo_url_list)
-        photo_link_thread.setDaemon(True)
-        photo_link_thread.start()
+    moment_queue.join()
     
-    url_queue.join()
-    html_queue.join()
-    
-    return photo_url_list
+    return moments
 
 
-def get_current_tweets_and_photos():
+def get_current_photo_moments():
     SEARCH_BASE = 'http://search.twitter.com/search.json?q=path.com%2Fp%2F'
     tweet_results = get_tweet_results_from_search_url(SEARCH_BASE)
-    path_urls = get_path_urls_from_tweet_results(tweet_results)
+    moments = get_photo_moments_from_tweet_results(tweet_results)
     
     start = time.time()
-    photo_links = get_photo_links_from_path_urls(path_urls)
+    moments = add_photo_links_to_photo_moments(moments)
     print "Elapsed Time: %s" % (time.time() - start)
-    return {'tweet_results':tweet_results, 'photo_links':photo_links}
+    return moments
 
-def get_tweets_and_photos_from_cache():
-    tweet_results = cache.get('tweet_results')
-    photo_links = cache.get('photo_links')
-    if tweet_results is None or photo_links is None:
-        results = get_current_tweets_and_photos()
-        cache.set('tweet_results', results['tweet_results'], timeout=10)
-        cache.set('photo_links', results['photo_links'], timeout=10)
-        return results
-    else:
-        return {'tweet_results':tweet_results, 'photo_links':photo_links}
+def get_photo_moments_from_cache():
+    print "checking cache..."
+    photo_moments = cache.get('photo_moments')
+    if photo_moments is None:
+        photo_moments = get_current_photo_moments()
+        cache.set('photo_moments', photo_moments, timeout=10)
+    latest_photo_url = str(photo_moments[0].getPhotoUrl())
+    return photo_moments
 
 @app.route('/')
 def index():
-    result = get_tweets_and_photos_from_cache()
-    tweet_results = result['tweet_results']
-    photo_links = result['photo_links']
+    photo_moments = get_photo_moments_from_cache()
     #print tweet_results
-    return render_template('moment.html', moments=tweet_results, photo_links=photo_links)
+    return render_template('moment.html', photo_moments=photo_moments)
 
 # http://search.twitter.com/search.json?q=path.com%2Fp%2F
 
-#def main():
-#    pass
+def main():
+    #print "latest photo:" + latest_photo_url
+    #p['a_channel'].trigger('an_event', {'photo_url': latest_photo_url})
+    t = TaskThread()
+    t.run()
 
 if __name__ == '__main__':
     #main()
