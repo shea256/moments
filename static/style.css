@@ -1,0 +1,14 @@
+body {
+	background-color: black;
+}
+
+body, p, h1, h2, h3, h4, h5, h6 {
+    font-family: trebuchet, arial, sans-serif;
+    color: white;
+}
+.photo-moments ul {
+	list-style-type: none;
+}
+.photo-moments ul li {
+	display: inline;
+}
