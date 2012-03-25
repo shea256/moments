@@ -1,8 +1,0 @@
-#!/Users/ryan/cs/current-projects/pathviewer/venv/bin/python
-
-from lamson import args, commands
-import sys
-
-args.parse_and_run_command(sys.argv[1:], commands, default_command="help")
-
-
