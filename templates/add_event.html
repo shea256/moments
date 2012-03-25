@@ -1,0 +1,56 @@
+<!doctype html>
+<title> Add E-Club Event </title>
+
+<link rel="stylesheet" type="html/css" href="{{url_for('static', filename='style.css')}}" />
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type=text/javascript src="{{url_for('static', filename='datetimepicker_css.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='validate.js')}}"></script>
+
+<h2>Submit an event to the Princeton Entrepreneurship Club Events Calendar</h2>
+<div id="content">
+<form class="form" id="jform" name="eventform" action="" method="post">
+	<fieldset>
+		<legend>Event Info</legend>
+		<p>
+			<label for="headline">Headline:</label>
+			<input type="text" name="headline" class="headline" id="headline" required="true" />
+		</p>
+		<p>
+			<label for="website">Link:</label>
+			<input type="text" name="website" class="website" id="website" />
+		</p>
+		<p>
+			<label for="details">Description:</label>
+			<textarea name="details" class="details" id="details"></textarea>
+		</p>
+		<p>
+			<label for="location">Location:</label>
+			<input type="text" name="location" class="location" id="location" />
+		</p>
+		<p>
+			<label for="starts">Starts:</label>
+			<input type="text" name="starts" class="starts datepicker" id="starts" maxlength="25" size="25" />
+			<img src="{{url_for('static', filename='images/cal.gif')}}" onclick="javascript:NewCssCal ('starts','MMddyyyy','arrow',true,'12')" style="cursor:pointer" id="starts_cal" />
+		</p>
+		<p>
+			<label for="ends">Ends:</label>
+			<input type="text" name="ends" class="ends datepicker" id="ends" maxlength="25" size="25" />
+			<img src="{{url_for('static', filename='images/cal.gif')}}" onclick="javascript:NewCssCal ('ends','MMddyyyy','arrow',true,'12')" style="cursor:pointer" id="ends_cal" />
+		</p>
+	</fieldset>
+	<fieldset>
+		<legend>Your Info</legend>
+		<p>
+			<label for="fullname">Full Name:</label>
+			<input type="text" name="fullname" class="fullname" id="fullname" />
+		</p>
+		<p>
+			<label for="email">Email:</label>
+			<input type="text" name="email" class="email" id="email" />
+		</p>
+	</fieldset>
+	<p>
+		<button type="submit" id="send">submit</button>
+	</p>
+</form>
+</div>

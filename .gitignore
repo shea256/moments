@@ -1,0 +1,12 @@
+venv
+*.pyc
+
+# App-specific
+ignore
+
+# emacs
+#*#
+*~
+
+# Mac
+*.DS_STORE

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}A Path Moment{% endblock %}
+{% block head %}
+	{{ super() }}
+	
+{% endblock %}
+{% block content %}
+	<h2>Here is are recent tweeted moments</h2>
+	<ul class="moment-tweets">
+	{% for moment in moments %}
+		<li>{{ moment['text'] }}</li>
+	{% else %}
+		<li>Sorry! No moments found.</li>
+	{% endfor %}
+	</ul>
+	<h2>Here is are recent photo moments</h2>
+	<div class="photo-moments">
+		<ul>
+			{% for photo_link in photo_links %}
+				<li><img src="{{photo_link}}" width="250" height="250" /></li>
+			{% else %}
+				<li>Sorry! No moments found.</li>
+			{% endfor %}
+		</ul>
+	</div>
+{% endblock %}
