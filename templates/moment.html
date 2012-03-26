@@ -33,19 +33,11 @@
 		<ul id="list_of_moments">
 			{% for moment in photo_moments %}
 				{% if moment.getPhotoUrl() %}
-				<li><img src="{{moment.getPhotoUrl()}}" width="250" height="250" id="{{moment.getId()}}" /></li>
+				<li><img src="{{moment.getPhotoUrl()}}" width="250" height="250" id="{{moment.getId()}}" alt="{{moment.getText()}}" /></li>
 				{% endif %}
 			{% else %}
 				<li>Sorry! No moments found.</li>
 			{% endfor %}
 		</ul>
 	</div>
-	<h2>Here is are recent tweeted moments</h2>
-	<ul class="moment-tweets">
-	{% for moment in photo_moments %}
-		<li>{{ moment.getText() }}</li>
-	{% else %}
-		<li>Sorry! No moments found.</li>
-	{% endfor %}
-	</ul>
 {% endblock %}
