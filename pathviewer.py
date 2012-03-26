@@ -53,7 +53,7 @@ class TaskThread(threading.Thread):
     def task(self):
         """The task done by this thread - override in subclasses"""
         #pass
-        get_photo_moments_from_cache()
+        update_photo_moments_in_cache()
 
 class GetHtmlFromUrlThread(threading.Thread):
     def __init__(self, moment_queue):
@@ -87,10 +87,11 @@ class GetHtmlFromUrlThread(threading.Thread):
             self.moment_queue.task_done()
 
 class Moment():
-    def __init__(self, id, text, path_url):
+    def __init__(self, id, text, path_url, from_user):
         self.id = id
         self.text = text
         self.path_url = path_url
+        self.from_user = from_user
         self.photo_url = None
     
     def setPhotoUrl(self, photo_url):
@@ -104,6 +105,12 @@ class Moment():
     
     def getPathUrl(self):
         return self.path_url
+    
+    def getId(self):
+        return self.id
+    
+    def getFromUser(self):
+        return self.from_user
 
 def get_tweet_results_from_search_url(search_url):
     resultsContainer = json.load(urllib.urlopen(search_url))
@@ -122,7 +129,8 @@ def get_photo_moments_from_tweet_results(tweet_results):
                     moment_id = result['id']
                     path_url = words[wordcount-1]
                     path_url = path_url.rstrip('\"')
-                    moment = Moment(moment_id, text, path_url)
+                    from_user = result['from_user']
+                    moment = Moment(moment_id, text, path_url, from_user)
                     moments.append(moment)
     return moments
 
@@ -145,7 +153,7 @@ def add_photo_links_to_photo_moments(moments):
 
 
 def get_current_photo_moments():
-    SEARCH_BASE = 'http://search.twitter.com/search.json?q=path.com%2Fp%2F'
+    SEARCH_BASE = 'http://search.twitter.com/search.json?q=path.com%2Fp%2F&result_type=recent'
     tweet_results = get_tweet_results_from_search_url(SEARCH_BASE)
     moments = get_photo_moments_from_tweet_results(tweet_results)
     
@@ -154,13 +162,20 @@ def get_current_photo_moments():
     print "Elapsed Time: %s" % (time.time() - start)
     return moments
 
+def update_photo_moments_in_cache():
+    print "updating cache..."
+    photo_moments = get_current_photo_moments()
+    latest_photo_url = str(photo_moments[0].getPhotoUrl())
+    latest_photo_id = str(photo_moments[0].getId())
+    p['a_channel'].trigger('an_event', {'photo_url': latest_photo_url, 'id':latest_photo_id})
+    cache.set('photo_moments', photo_moments, timeout=300)
+
 def get_photo_moments_from_cache():
-    print "checking cache..."
     photo_moments = cache.get('photo_moments')
     if photo_moments is None:
+        print "updating cache..."
         photo_moments = get_current_photo_moments()
-        cache.set('photo_moments', photo_moments, timeout=10)
-    latest_photo_url = str(photo_moments[0].getPhotoUrl())
+        cache.set('photo_moments', photo_moments, timeout=300)
     return photo_moments
 
 @app.route('/')
@@ -171,15 +186,16 @@ def index():
 
 # http://search.twitter.com/search.json?q=path.com%2Fp%2F
 
-def main():
+def runRefresher():
     #print "latest photo:" + latest_photo_url
     #p['a_channel'].trigger('an_event', {'photo_url': latest_photo_url})
     t = TaskThread()
+    t.setInterval(10)
     t.run()
 
 if __name__ == '__main__':
-    #main()
     # Bind to PORT if defined, otherwise default to 5000
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+    runRefresher()
 

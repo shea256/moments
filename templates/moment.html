@@ -11,20 +11,35 @@
 		WEB_SOCKET_DEBUG = true;
 		// remove the above in production
 	
-		var pusher = new Pusher('707a21bc6e05a8c64325');
+		var pusher = new Pusher('5b7cb63a557f941ee1aa');
 		var channel = pusher.subscribe('a_channel');
 		channel.bind('an_event', function(data) {
 			var list = document.getElementById('list_of_moments');
 			var the_elements = list.children;
 			var new_element = document.createElement('li');
-			//new_element.innerHTML = "yes!";
-			list.insertBefore(the_elements[the_elements.length - 1], list.firstChild);
-			//list.prependChild(new_element);
-			//alert(data);
+			//new_element.innerHTML = "<img src=\"" + "http://ecstartupsummit.com/img/logo.png" + "\">";
+			new_element.innerHTML = "<img src=\"" + data['photo_url'] + "\" width=\"250\" height=\"250\" id=\"" + data['id'] + "\" />";
+			var el_already_in_list = document.getElementById(data['id']);
+			console.log(el_already_in_list);
+			if (el_already_in_list == null) {
+				list.insertBefore(new_element, list.firstChild);
+			}
+			//alert(data['photo_url']);
 		});
 	</script>
 {% endblock %}
 {% block content %}
+	<div class="photo-moments">
+		<ul id="list_of_moments">
+			{% for moment in photo_moments %}
+				{% if moment.getPhotoUrl() %}
+				<li><img src="{{moment.getPhotoUrl()}}" width="250" height="250" id="{{moment.getId()}}" /></li>
+				{% endif %}
+			{% else %}
+				<li>Sorry! No moments found.</li>
+			{% endfor %}
+		</ul>
+	</div>
 	<h2>Here is are recent tweeted moments</h2>
 	<ul class="moment-tweets">
 	{% for moment in photo_moments %}
@@ -33,16 +48,4 @@
 		<li>Sorry! No moments found.</li>
 	{% endfor %}
 	</ul>
-	<h2>Here is are recent photo moments</h2>
-	<div class="photo-moments">
-		<ul id="list_of_moments">
-			{% for moment in photo_moments %}
-				{% if moment.getPhotoUrl() %}
-				<li><img src="{{moment.getPhotoUrl()}}" onMouseOver="hey!" width="250" height="250" /></li>
-				{% endif %}
-			{% else %}
-				<li>Sorry! No moments found.</li>
-			{% endfor %}
-		</ul>
-	</div>
 {% endblock %}
