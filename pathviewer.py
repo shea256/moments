@@ -168,14 +168,14 @@ def update_photo_moments_in_cache():
     latest_photo_url = str(photo_moments[0].getPhotoUrl())
     latest_photo_id = str(photo_moments[0].getId())
     p['a_channel'].trigger('an_event', {'photo_url': latest_photo_url, 'id':latest_photo_id})
-    cache.set('photo_moments', photo_moments, timeout=300)
+    cache.set('photo_moments', photo_moments, timeout=15)
 
 def get_photo_moments_from_cache():
     photo_moments = cache.get('photo_moments')
     if photo_moments is None:
         print "updating cache..."
         photo_moments = get_current_photo_moments()
-        cache.set('photo_moments', photo_moments, timeout=300)
+        cache.set('photo_moments', photo_moments, timeout=15)
     return photo_moments
 
 @app.route('/')
