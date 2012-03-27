@@ -23,7 +23,7 @@ p = pusher.Pusher()
 app = Flask(__name__)
 
 app.config.update(
-	DEBUG = True,
+	DEBUG = False,
 )
 
 class TaskThread(threading.Thread):
