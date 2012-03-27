@@ -18,7 +18,7 @@
 			var the_elements = list.children;
 			var new_element = document.createElement('li');
 			//new_element.innerHTML = "<img src=\"" + "http://ecstartupsummit.com/img/logo.png" + "\">";
-			new_element.innerHTML = "<img src=\"" + data['photo_url'] + "\" width=\"250\" height=\"250\" id=\"" + data['id'] + "\" />";
+			new_element.innerHTML = "<a href=\"" + data['path_url'] + "\" target=\"_blank\" ><img src=\"" + data['photo_url'] + "\" width=\"250\" height=\"250\" id=\"" + data['id'] + "\" /></a>";
 			var el_already_in_list = document.getElementById(data['id']);
 			console.log(el_already_in_list);
 			if (el_already_in_list == null) {
@@ -33,7 +33,7 @@
 		<ul id="list_of_moments">
 			{% for moment in photo_moments %}
 				{% if moment.getPhotoUrl() %}
-				<li><img src="{{moment.getPhotoUrl()}}" width="250" height="250" id="{{moment.getId()}}" alt="{{moment.getText()}}" /></li>
+				<li><a href="{{moment.getPathUrl()}}" target="_blank"><img src="{{moment.getPhotoUrl()}}" width="250" height="250" id="{{moment.getId()}}" alt="{{moment.getText()}}" /></a></li>
 				{% endif %}
 			{% else %}
 				<li>Sorry! No moments found.</li>
