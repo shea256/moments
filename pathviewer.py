@@ -169,11 +169,12 @@ def get_current_photo_moments():
 def update_photo_moments_in_cache():
     print "updating cache..."
     photo_moments = get_current_photo_moments()
-    photo_url = str(photo_moments[0].getPhotoUrl())
-    photo_id = str(photo_moments[0].getId())
-    path_url = str(photo_moments[0].getPathUrl())
-    p['a_channel'].trigger('an_event', {'photo_url': photo_url, 'id':photo_id, 'path_url':path_url})
-    cache.set('photo_moments', photo_moments, timeout=10)
+    if len(photo_moments) > 0:
+        photo_url = str(photo_moments[0].getPhotoUrl())
+        photo_id = str(photo_moments[0].getId())
+        path_url = str(photo_moments[0].getPathUrl())
+        p['a_channel'].trigger('an_event', {'photo_url': photo_url, 'id':photo_id, 'path_url':path_url})
+        cache.set('photo_moments', photo_moments, timeout=10)
 
 def get_photo_moments_from_cache():
     photo_moments = cache.get('photo_moments')
