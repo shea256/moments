@@ -156,13 +156,14 @@ def add_photo_links_to_photo_moments(moments):
     return moments
 
 def get_current_photo_moments():
+    # http://search.twitter.com/search.json?q=path.com%2Fp%2F
     SEARCH_BASE = 'http://search.twitter.com/search.json?q=path.com%2Fp%2F&result_type=recent'
     tweet_results = get_tweet_results_from_search_url(SEARCH_BASE)
     moments = get_photo_moments_from_tweet_results(tweet_results)
     
-    start = time.time()
+    #start = time.time()
     moments = add_photo_links_to_photo_moments(moments)
-    print "Elapsed Time: %s" % (time.time() - start)
+    #print "Elapsed Time: %s" % (time.time() - start)
     return moments
 
 def update_photo_moments_in_cache():
@@ -172,34 +173,23 @@ def update_photo_moments_in_cache():
     photo_id = str(photo_moments[0].getId())
     path_url = str(photo_moments[0].getPathUrl())
     p['a_channel'].trigger('an_event', {'photo_url': photo_url, 'id':photo_id, 'path_url':path_url})
-    cache.set('photo_moments', photo_moments, timeout=15)
+    cache.set('photo_moments', photo_moments, timeout=10)
 
 def get_photo_moments_from_cache():
     photo_moments = cache.get('photo_moments')
     if photo_moments is None:
         print "updating cache..."
         photo_moments = get_current_photo_moments()
-        cache.set('photo_moments', photo_moments, timeout=15)
+        cache.set('photo_moments', photo_moments, timeout=10)
     return photo_moments
 
 @app.route('/')
 def index():
     photo_moments = get_photo_moments_from_cache()
-    #print tweet_results
     return render_template('moment.html', photo_moments=photo_moments)
-
-# http://search.twitter.com/search.json?q=path.com%2Fp%2F
-
-def runRefresher():
-    #print "latest photo:" + latest_photo_url
-    #p['a_channel'].trigger('an_event', {'photo_url': latest_photo_url})
-    t = TaskThread()
-    t.setInterval(10)
-    t.run()
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-    runRefresher()
 
