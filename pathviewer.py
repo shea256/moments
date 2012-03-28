@@ -146,7 +146,10 @@ def add_photo_links_to_photo_moments(moments):
     for i in range(number_urls):
         html_thread = GetHtmlFromUrlThread(moment_queue)
         html_thread.setDaemon(True)
-        html_thread.start()
+        try:
+            html_thread.start()
+        except:
+            print "could not start thread"
     
     for moment in moments:
         moment_queue.put(moment)
