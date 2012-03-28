@@ -8,6 +8,7 @@ import time
 import os
 from werkzeug.contrib.cache import SimpleCache
 import pusher
+import sys
 
 cache = SimpleCache()
 
@@ -150,6 +151,7 @@ def add_photo_links_to_photo_moments(moments):
             html_thread.start()
         except:
             print "could not start thread"
+            sys.exit()
     
     for moment in moments:
         moment_queue.put(moment)
