@@ -4,13 +4,6 @@
 	{{ super() }}
 	<script src="http://js.pusher.com/1.11/pusher.min.js"></script>
 	<script type="text/javascript">
-		// don't include this in production
-		Pusher.log = function(message) {
-			if (window.console && window.console.log) window.console.log(message);
-		};
-		WEB_SOCKET_DEBUG = true;
-		// remove the above in production
-	
 		var pusher = new Pusher('5b7cb63a557f941ee1aa');
 		var channel = pusher.subscribe('a_channel');
 		channel.bind('an_event', function(data) {
@@ -18,7 +11,7 @@
 			var the_elements = list.children;
 			var new_element = document.createElement('li');
 			//new_element.innerHTML = "<img src=\"" + "http://ecstartupsummit.com/img/logo.png" + "\">";
-			new_element.innerHTML = "<a href=\"" + data['path_url'] + "\" target=\"_blank\" ><img src=\"" + data['photo_url'] + "\" width=\"250\" height=\"250\" id=\"" + data['id'] + "\" /></a>";
+			new_element.innerHTML = "<a href=\"" + data['path_url'] + "\" target=\"_blank\" ><img src=\"" + data['photo_url'] + "\" width=\"250\" height=\"250\" id=\"" + data['id'] + "\" alt=\"" + data['text'] + "\" /></a>";
 			var el_already_in_list = document.getElementById(data['id']);
 			console.log(el_already_in_list);
 			if (el_already_in_list == null) {

@@ -1,2 +1,2 @@
-web: python pathviewer.py
+web: python app.py
 worker: python momentpusher.py

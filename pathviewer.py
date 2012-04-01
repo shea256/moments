@@ -134,8 +134,8 @@ def get_photo_moments_from_tweet_results(tweet_results):
                     path_url = words[wordcount-1]
                     path_url = path_url.rstrip('\"')
                     path_url = removeNonAscii(path_url)
-                    from_user = result['from_user']
-                    moment = Moment(moment_id, text, path_url, from_user)
+                    user = result['from_user']
+                    moment = Moment(moment_id, text, path_url, user)
                     moments.append(moment)
     return moments
 
